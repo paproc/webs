@@ -1,0 +1,93 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: deploy
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 16.x , 18.x ]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - uses: shivammathur/setup-php@v2
+      name: Setup PHP
+      with:
+        php-version: 8.1
+        extensions: curl, mbstring, mysql, soap, xml
+        tools: composer
+        ini-values: session.gc_probability=0, date.timezone="Europe/Prague", display_startup_errors = Off
+    - uses: actions/setup-python@v4
+      name: Setup Python
+    - run: composer install
+    - run: npm ci
+      name: NPM clean install
+    - run: npm run build
+      env:
+        CI: true
+    - name: prune not needed files
+      if: ${{ github.ref }} == refs/heads/master
+      run: >
+        wget -Omd5sum.txt ${{ vars.ASSETS_MD5SUM_URL_FOR_COMPARASION }} && md5sum --ignore-missing -c md5sum.txt | grep ": OK$" | cut -d: -f 1 | sed 's/.*/rm "&"/' | bash
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.3
+      if: ${{ github.ref }} == refs/heads/master
+      with:
+        name: webs-${{ github.sha }}-npm-${{ matrix.node-version }}
+        path: ./www/*/assets
+
+
+  test:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4' , '8.0' , '8.1']
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+        with:
+          submodules: recursive
+      - uses: shivammathur/setup-php@v2
+        name: Setup PHP
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, mbstring, mysql, soap, xml
+          tools: composer
+          ini-values: session.gc_probability=0, date.timezone="Europe/Prague", display_startup_errors = Off
+      - name: Composer install
+        run: composer install --no-progress --prefer-dist
+      - uses: actions/setup-python@v4
+        name: Setup Python
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r tests/api/requirements.txt
+        name: Pip install
+      - run: composer run-script test
+        name: Test
+      - if: failure()
+        name: Failure output
+        uses: actions/upload-artifact@v2
+        with:
+          name: output
+          path: tests/**/*.actual
+
+
+  deploy:
+    name: deploy
+    runs-on: ubuntu-20.04
+    needs: [build, test]
+    steps:
+      - run: echo ahoj
