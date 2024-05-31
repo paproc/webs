@@ -31,6 +31,19 @@ echo '
     ';
 
 $engine = App\Bootstrap::bootVyfuk()->createContainer()->getByType(Nette\Bridges\ApplicationLatte\LatteFactory::class)->create();
+
+if (class_exists(Nette\Bridges\CacheLatte\CacheMacro::class)) {
+    $engine->getCompiler()->addMacro('cache', new Nette\Bridges\CacheLatte\CacheMacro);
+}
+
+if (class_exists(Nette\Bridges\ApplicationLatte\UIMacros::class)) {
+    Nette\Bridges\ApplicationLatte\UIMacros::install($engine->getCompiler());
+}
+
+if (class_exists(Nette\Bridges\FormsLatte\FormMacros::class)) {
+    Nette\Bridges\FormsLatte\FormMacros::install($engine->getCompiler());
+}
+
 $ok = (new Latte\Tools\Linter($engine, $debug))->scanDirectory(__DIR__ . '/../app/Modules/' . $site);
 
 exit($ok ? 0 : 1);
