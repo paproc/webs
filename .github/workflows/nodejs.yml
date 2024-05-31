@@ -15,7 +15,7 @@ jobs:
         node-version: [ 16.x , 18.x ]
 
     steps:
-    - uses: ./.github.actions/setup.yml
+    - uses: ./.github/.actions/setup.yml
       with:
         node: true
         node-version: ${{ matrix.node-version }}
