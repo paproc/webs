@@ -52,7 +52,7 @@ runs:
       run: npm ci
 
     - name: build assets
-      if: node-build == true
+      if: inputs.node-build == true
       shell: bash
       run: npm run build
 
