@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+      - run: ls
       - uses: ./setup.yml
 
       - run: composer run-script latteLint
