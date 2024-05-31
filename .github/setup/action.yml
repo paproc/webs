@@ -44,21 +44,21 @@ runs:
       run: composer install --no-progress --prefer-dist
 
     - name: Use Node.js ${{ inputs.node-version }}
-      if: inputs.node == true
+      if: inputs.node == 'true'
       uses: actions/setup-node@v1
       with:
         node-version: ${{ inputs.node-version }}
 
     - name: NPM clean install
-      if: inputs.node == true
+      if: inputs.node == 'true'
       shell: bash
       run: npm ci
 
     - name: build assets
-      if: inputs.node-build == true
+      if: inputs.node-build == 'true'
       shell: bash
       run: npm run build
 
     - name: Setup Python
-      if: inputs.python == true
+      if: inputs.python == 'true'
       uses: actions/setup-python@v4

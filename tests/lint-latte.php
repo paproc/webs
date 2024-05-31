@@ -44,6 +44,6 @@ if (class_exists(Nette\Bridges\FormsLatte\FormMacros::class)) {
     Nette\Bridges\FormsLatte\FormMacros::install($engine->getCompiler());
 }
 
-$ok = (new Latte\Tools\Linter($engine, $debug))->scanDirectory(__DIR__ . '/../app/Modules/' . $site);
+$ok = (new Latte\Tools\Linter($engine, $debug))->scanDirectory(__DIR__ . '/../app/');
 
 exit($ok ? 0 : 1);
