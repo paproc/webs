@@ -29,6 +29,7 @@ runs:
   using: "composite"
   steps:
     - run: mkdir app/config/local/ && cd app/config/local/ && cp ../config.local.neon.example vyfuk.neon && cp vyfuk.neon dsef.neon && cp vyfuk.neon fof.neon && cp vyfuk.neon fol.neon && cp vyfuk.neon fykos.neon
+      shell: bash
 
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
