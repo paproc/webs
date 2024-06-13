@@ -11,6 +11,7 @@ services:
       TZ: 'Europe/Prague'
     volumes:
       - ../../..:/var/www/html # path to webs repository
+    user: 33:33
     extra_hosts:
       - online.fyziklani.cz:127.0.0.1
       - online.fyziklani.org:127.0.0.1

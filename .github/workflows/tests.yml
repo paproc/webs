@@ -97,18 +97,35 @@ jobs:
           path: app/ tests/
 
   test-webserver:
-    needs: 
+    needs:
       - latte
       - build
-      #- php-stan
+    #- php-stan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         name: Checkout
         with:
           submodules: recursive
-      #TODO generate local config
+      - name: generate local config
+        run: 'echo -e "parameters:\n    # FKSDB API endpoint\n    fksdbDownloader:\n        login: \u0027$DBNAME\u0027\n        password: \u0027$DBPASS\u0027\n        url: \u0027https://db.fykos.cz/api/\u0027\n    problemManagerDownloader:\n        login: \u0027$PROBLEMNAME\u0027\n        password: \u0027$PROBLEMSSWORD\u0027\n        url: \u0027$PROBLEMURL\u0027\n\n    # game API endpoint, used for FOL/FOF live results\n    #gameApi:\n    #    login: \u0027\u0027\n    #    password: \u0027\u0027\n    #    url: \u0027\u0027\n\n    domains:\n        vyfuk.org: cs\n        fykos.cz: cs\n        fykos.org: en\n        dsef.cz: cs\n        dsef.org: en\n        fyziklani.cz: cs \n        fyziklani.org: en\n        online.fyziklani.cz: cs\n        online.fyziklani.org: en\n" > app/config/config.local.neon.example'
+        env:
+          DBNAME: ${{ secrets.DBNAME }}
+          DBPASS: ${{ secrets.DBPASS }}
+          PROBLEMNAME: ${{ secrets.PROBLEMNAME }}
+          PROBLEMSSWORD: ${{ secrets.PROBLEMSSWORD }}
+          PROBLEMURL: ${{ secrets.PROBLEMURL }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - run: "docker compose up --exit-code-from webs-test"
+      - name: Build docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ github.workspace }}/tests/getter/docker
+          load: true
+          pull: true
+          tags: webs-test-getter:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - run: chmod 777 log app/config/
+      - run: docker compose up --exit-code-from webs-test
         working-directory: "${{ github.workspace }}/tests/getter/docker"
